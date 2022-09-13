@@ -168,7 +168,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
           this.config.excludePatternsOptions
         ).test(operationName))
     ) {
-      const getSSP = `export async function get${pageOperation}
+      const getSSP = `export async function set${pageOperation}
     (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'mutation'>, ${
         this.config.apolloClientInstanceImport
           ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
@@ -188,12 +188,13 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
           throw new Error('No client instance found. Pass an Apollo.ApolloClient instance to get${pageOperation} or add a client to the context with setGraphQLContext.');
         }
         
-        const observable =  client.mutate<${operationResultType}>({ ...options, mutation: ${this.getDocumentNodeVariable(
+        const data = await client.mutate<${operationResultType}>({ ...options, mutation: ${this.getDocumentNodeVariable(
         documentVariableName
       )} });
 
         return {
-            obervable
+            data: data?.data,
+            error: data?.error ?? data?.errors ?? null,
         };
       }`;
       return [getSSP].filter((a) => a).join("\n");
@@ -227,13 +228,12 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
           throw new Error('No client instance found. Pass an Apollo.ApolloClient instance to get${pageOperation} or add a client to the context with setGraphQLContext.');
         }
         
-        const data = await client.subscribe<${operationResultType}>({ ...options, query: ${this.getDocumentNodeVariable(
+        const observable = client.subscribe<${operationResultType}>({ ...options, query: ${this.getDocumentNodeVariable(
         documentVariableName
       )} });
 
         return {
-            data: data?.data,
-            error: data?.error ?? data?.errors ?? null,
+            obervable
         };
       }`;
       return [getSSP].filter((a) => a).join("\n");
