@@ -209,7 +209,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
         ).test(operationName))
     ) {
       const getSSP = `export async function get${pageOperation}
-    (options: Omit<Apollo.SubscriptionOptions<${operationResultType}>, 'subscription'>, ${
+    (options: Omit<Apollo.SubscriptionOptions<${operationVariablesTypes}>, 'query'>, ${
         this.config.apolloClientInstanceImport
           ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
               this.config.contextType
@@ -240,7 +240,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
     }
 
     const getSSP = `export async function get${pageOperation}
-    (options: Omit<Apollo.QueryOptions<${operationResultType}>, 'query'>, ${
+    (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'query'>, ${
       this.config.apolloClientInstanceImport
         ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
             this.config.contextType
