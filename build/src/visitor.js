@@ -119,7 +119,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
         if (node.operation === "subscription" ||
             (this.config.excludePatterns &&
                 new RegExp(this.config.excludePatterns, this.config.excludePatternsOptions).test(operationName))) {
-            const getSSP = `export async function get${pageOperation}
+            const getSSP = `export function get${pageOperation}
     (options: Omit<Apollo.SubscriptionOptions<${operationVariablesTypes}>, 'query'>, ${this.config.apolloClientInstanceImport
                 ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${this.config.contextType}`
                 : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"} ){
