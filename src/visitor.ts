@@ -169,7 +169,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
         ).test(operationName))
     ) {
       const getSSP = `export async function set${pageOperation}
-    (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'mutation'>, ${
+    (options: Omit<Apollo.MutationOptions<${operationVariablesTypes}>, 'mutation'>, ${
         this.config.apolloClientInstanceImport
           ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
               this.config.contextType
@@ -194,7 +194,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
 
         return {
             data: data?.data,
-            error: data?.error ?? data?.errors ?? null,
+            error: data?.errors ?? null,
         };
       }`;
       return [getSSP].filter((a) => a).join("\n");
@@ -209,7 +209,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
         ).test(operationName))
     ) {
       const getSSP = `export async function get${pageOperation}
-    (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'subscription'>, ${
+    (options: Omit<Apollo.SubscriptionOptions<${operationVariablesTypes}>, 'subscription'>, ${
         this.config.apolloClientInstanceImport
           ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
               this.config.contextType
@@ -233,7 +233,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
       )} });
 
         return {
-            obervable
+            observable
         };
       }`;
       return [getSSP].filter((a) => a).join("\n");
