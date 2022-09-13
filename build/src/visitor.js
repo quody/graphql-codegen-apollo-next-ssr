@@ -94,7 +94,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
             (this.config.excludePatterns &&
                 new RegExp(this.config.excludePatterns, this.config.excludePatternsOptions).test(operationName))) {
             const getSSP = `export async function set${pageOperation}
-    (options: Omit<Apollo.MutationOptions<${operationVariablesTypes}>, 'mutation'>, ${this.config.apolloClientInstanceImport
+    (options: Omit<Apollo.MutationOptions<${operationResultType}>, 'mutation'>, ${this.config.apolloClientInstanceImport
                 ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${this.config.contextType}`
                 : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"} ){
         ${this.config.apolloClientInstanceImport
@@ -120,7 +120,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
             (this.config.excludePatterns &&
                 new RegExp(this.config.excludePatterns, this.config.excludePatternsOptions).test(operationName))) {
             const getSSP = `export async function get${pageOperation}
-    (options: Omit<Apollo.SubscriptionOptions<${operationVariablesTypes}>, 'subscription'>, ${this.config.apolloClientInstanceImport
+    (options: Omit<Apollo.SubscriptionOptions<${operationResultType}>, 'subscription'>, ${this.config.apolloClientInstanceImport
                 ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${this.config.contextType}`
                 : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"} ){
         ${this.config.apolloClientInstanceImport
@@ -142,7 +142,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
             return [getSSP].filter((a) => a).join("\n");
         }
         const getSSP = `export async function get${pageOperation}
-    (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'query'>, ${this.config.apolloClientInstanceImport
+    (options: Omit<Apollo.QueryOptions<${operationResultType}>, 'query'>, ${this.config.apolloClientInstanceImport
             ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${this.config.contextType}`
             : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"} ){
         ${this.config.apolloClientInstanceImport
