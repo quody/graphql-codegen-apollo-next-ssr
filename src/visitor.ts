@@ -152,6 +152,14 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
       useTypesPrefix: false,
     });
 
+    let pageOperation = operationName;
+    if (this.config.replacePage) {
+      pageOperation = pageOperation.replace(/page/i, "");
+    }
+    if (this.config.replaceQuery) {
+      pageOperation = pageOperation.replace(/query/i, "");
+    }
+
     if (
       node.operation === "mutation" ||
       (this.config.excludePatterns &&
@@ -160,15 +168,75 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
           this.config.excludePatternsOptions
         ).test(operationName))
     ) {
-      return "";
+      const getSSP = `export async function get${pageOperation}
+    (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'mutation'>, ${
+        this.config.apolloClientInstanceImport
+          ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
+              this.config.contextType
+            }`
+          : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"
+      } ){
+        ${
+          this.config.apolloClientInstanceImport
+            ? "const apolloClient = getApolloClient(ctx);"
+            : ""
+        }
+
+        const client  = apolloClient || context.client;
+
+        if (!client) {
+          throw new Error('No client instance found. Pass an Apollo.ApolloClient instance to get${pageOperation} or add a client to the context with setGraphQLContext.');
+        }
+        
+        const observable =  client.mutate<${operationResultType}>({ ...options, mutation: ${this.getDocumentNodeVariable(
+        documentVariableName
+      )} });
+
+        return {
+            obervable
+        };
+      }`;
+      return [getSSP].filter((a) => a).join("\n");
     }
 
-    let pageOperation = operationName;
-    if (this.config.replacePage) {
-      pageOperation = pageOperation.replace(/page/i, "");
-    }
-    if (this.config.replaceQuery) {
-      pageOperation = pageOperation.replace(/query/i, "");
+    if (
+      node.operation === "subscription" ||
+      (this.config.excludePatterns &&
+        new RegExp(
+          this.config.excludePatterns,
+          this.config.excludePatternsOptions
+        ).test(operationName))
+    ) {
+      const getSSP = `export async function get${pageOperation}
+    (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'subscription'>, ${
+        this.config.apolloClientInstanceImport
+          ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
+              this.config.contextType
+            }`
+          : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"
+      } ){
+        ${
+          this.config.apolloClientInstanceImport
+            ? "const apolloClient = getApolloClient(ctx);"
+            : ""
+        }
+
+        const client  = apolloClient || context.client;
+
+        if (!client) {
+          throw new Error('No client instance found. Pass an Apollo.ApolloClient instance to get${pageOperation} or add a client to the context with setGraphQLContext.');
+        }
+        
+        const data = await client.subscribe<${operationResultType}>({ ...options, query: ${this.getDocumentNodeVariable(
+        documentVariableName
+      )} });
+
+        return {
+            data: data?.data,
+            error: data?.error ?? data?.errors ?? null,
+        };
+      }`;
+      return [getSSP].filter((a) => a).join("\n");
     }
 
     const getSSP = `export async function get${pageOperation}
