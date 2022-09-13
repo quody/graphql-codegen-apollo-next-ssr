@@ -40,8 +40,8 @@ const plugin = (schema, documents, config) => {
 };
 exports.plugin = plugin;
 const validate = (schema, documents, config, outputFile) => __awaiter(void 0, void 0, void 0, function* () {
-    if ((0, path_1.extname)(outputFile) !== ".tsx") {
-        throw new Error(`Plugin "apollo-next-ssr" requires extension to be ".tsx"!`);
+    if ((0, path_1.extname)(outputFile) !== ".ts") {
+        throw new Error(`Plugin "apollo-next-ssr" requires extension to be ".ts"!`);
     }
 });
 exports.validate = validate;
