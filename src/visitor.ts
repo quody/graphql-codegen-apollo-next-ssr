@@ -30,22 +30,25 @@ export class ApolloNextSSRVisitor extends ClientSideBaseVisitor<
       apolloReactCommonImportFrom: getConfigValue(
         rawConfig.apolloReactCommonImportFrom,
         rawConfig.reactApolloVersion === 3
-          ? "@apollo/client"
+          ? "@apollo/client/core"
           : "@apollo/react-common"
       ),
 
       apolloReactHooksImportFrom: getConfigValue(
         rawConfig.apolloReactHooksImportFrom,
         rawConfig.reactApolloVersion === 3
-          ? "@apollo/client"
+          ? "@apollo/client/core"
           : "@apollo/react-hooks"
       ),
       apolloImportFrom: getConfigValue(
         rawConfig.apolloImportFrom,
-        rawConfig.reactApolloVersion === 3 ? "@apollo/client" : "apollo-client"
+        rawConfig.reactApolloVersion === 3
+          ? "@apollo/client/core"
+          : "apollo-client"
       ),
 
       reactApolloVersion: getConfigValue(rawConfig.reactApolloVersion, 2),
+      // @ts-ignore
       excludePatterns: getConfigValue(rawConfig.excludePatterns, null),
       excludePatternsOptions: getConfigValue(
         rawConfig.excludePatternsOptions,
@@ -56,31 +59,25 @@ export class ApolloNextSSRVisitor extends ClientSideBaseVisitor<
       replaceQuery: getConfigValue(rawConfig.replaceQuery, true),
       pre: getConfigValue(rawConfig.pre, ""),
       post: getConfigValue(rawConfig.post, ""),
+      // @ts-ignore
       customImports: getConfigValue(rawConfig.customImports, null),
-      withHOC: getConfigValue(rawConfig.withHOC, true),
-      withHooks: getConfigValue(rawConfig.withHooks, false),
 
       apolloClientInstanceImport: getConfigValue(
         rawConfig.apolloClientInstanceImport,
         ""
       ),
-      contextType: getConfigValue(
-        rawConfig.contextType, "any"
-      ),
+      contextType: getConfigValue(rawConfig.contextType, "any"),
       contextTypeRequired: getConfigValue(
-        !!rawConfig.contextTypeRequired, false
+        !!rawConfig.contextTypeRequired,
+        false
       ),
       apolloCacheImportFrom: getConfigValue(
         rawConfig.apolloCacheImportFrom,
         rawConfig.reactApolloVersion === 3
-          ? "@apollo/client"
+          ? "@apollo/client/core"
           : "apollo-cache-inmemory"
       ),
-      apolloStateKey: getConfigValue(rawConfig.apolloStateKey, 'apolloState'),
-      reactImport: getConfigValue(
-        rawConfig.reactImport,
-        `import type React from 'react';`
-      ),
+      apolloStateKey: getConfigValue(rawConfig.apolloStateKey, "apolloState"),
     });
 
     this._externalImportPrefix = this.config.importOperationTypesFrom
@@ -92,26 +89,19 @@ export class ApolloNextSSRVisitor extends ClientSideBaseVisitor<
   }
 
   public getImports(): string[] {
-    if (this.config.withHOC) {
-      this.imports.add(`import { NextPage } from 'next';`);
-    }
-    if (this.config.withHOC || this.config.withHooks) {
-      this.imports.add(`import { NextRouter, useRouter } from 'next/router'`);
-    }    
-    if (this.config.withHOC || this.config.withHooks) {
-      this.imports.add(
-        `import { QueryHookOptions, useQuery } from '${this.config.apolloReactHooksImportFrom}';`
-      );
-    }
-
     this.imports.add(
       `import * as Apollo from '${this.config.apolloImportFrom}';`
     );
+    // @ts-ignore
     this.imports.add(this.config.reactImport);
 
     if (this.config.apolloClientInstanceImport) {
       this.imports.add(
-        `import { getApolloClient ${this.config.contextType !== 'any' ? ', ' + this.config.contextType : ''}} from '${this.config.apolloClientInstanceImport}';`
+        `import { getApolloClient ${
+          this.config.contextType !== "any"
+            ? ", " + this.config.contextType
+            : ""
+        }} from '${this.config.apolloClientInstanceImport}';`
       );
     }
     if (!this.config.apolloClientInstanceImport) {
@@ -124,9 +114,17 @@ export class ApolloNextSSRVisitor extends ClientSideBaseVisitor<
     }
 
     let baseImports = super.getImports();
-    if (this.config.importDocumentNodeExternallyFrom === 'same-file') {
-      baseImports = baseImports.filter(importStr => !importStr.startsWith('import * as Operations from '))
+    if (this.config.importDocumentNodeExternallyFrom === "same-file") {
+      baseImports = baseImports.filter(
+        (importStr) => !importStr.startsWith("import * as Operations from ")
+      );
     }
+
+    this.imports.add(`
+type ServerGraphQLContext = { client?: Apollo.ApolloClient<NormalizedCacheObject>}
+var context: ServerGraphQLContext = { client: undefined };
+export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<NormalizedCacheObject>}) => { context = newContext }
+    `);
 
     const hasOperations = this._collectedOperations.length > 0;
 
@@ -138,7 +136,8 @@ export class ApolloNextSSRVisitor extends ClientSideBaseVisitor<
   }
 
   private getDocumentNodeVariable(documentVariableName: string): string {
-    return this.config.documentMode === DocumentMode.external && this.config.importDocumentNodeExternallyFrom !== 'same-file'
+    return this.config.documentMode === DocumentMode.external &&
+      this.config.importDocumentNodeExternallyFrom !== "same-file"
       ? `Operations.${documentVariableName}`
       : documentVariableName;
   }
@@ -172,66 +171,36 @@ export class ApolloNextSSRVisitor extends ClientSideBaseVisitor<
       pageOperation = pageOperation.replace(/query/i, "");
     }
 
-    const WrappedComp = `export type Page${pageOperation}Comp = React.FC<{data?: ${operationResultType}, error?: Apollo.ApolloError}>;`;
-
-    const pageQueryString = this.config.withHOC
-      ? `export const withPage${pageOperation} = (optionsFunc?: (router: NextRouter)=> QueryHookOptions<${operationResultType}, ${operationVariablesTypes}>) => (WrappedComponent:Page${pageOperation}Comp) : NextPage  => (props) => {
-                const router = useRouter()
-                const options = optionsFunc ? optionsFunc(router) : {};
-                const {data, error } = useQuery(${this.getDocumentNodeVariable(
-                  documentVariableName
-                )}, options)    
-                return <WrappedComponent {...props} data={data} error={error} /> ;
-                   
-            }; `
-      : "";
-
-    const pageHook = this.config.withHooks
-      ? `export const use${pageOperation} = (
-  optionsFunc?: (router: NextRouter)=> QueryHookOptions<${operationResultType}, ${operationVariablesTypes}>) => {
-  const router = useRouter();
-  const options = optionsFunc ? optionsFunc(router) : {};
-  return useQuery(${this.getDocumentNodeVariable(
-    documentVariableName
-  )}, options);
-};`
-      : "";
-
-    const getSSP = `export async function getServerPage${pageOperation}
+    const getSSP = `export async function get${pageOperation}
     (options: Omit<Apollo.QueryOptions<${operationVariablesTypes}>, 'query'>, ${
       this.config.apolloClientInstanceImport
-        ? `ctx${this.config.contextTypeRequired ? '' : '?'}: ${this.config.contextType}`
-        : "apolloClient: Apollo.ApolloClient<NormalizedCacheObject>"
+        ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
+            this.config.contextType
+          }`
+        : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"
     } ){
         ${
           this.config.apolloClientInstanceImport
             ? "const apolloClient = getApolloClient(ctx);"
             : ""
         }
+
+        const client  = apolloClient || context.client;
+
+        if (!client) {
+          throw new Error('No client instance found. Pass an Apollo.ApolloClient instance to get${pageOperation} or add a client to the context with setGraphQLContext.');
+        }
         
-        const data = await apolloClient.query<${operationResultType}>({ ...options, query: ${this.getDocumentNodeVariable(
+        const data = await client.query<${operationResultType}>({ ...options, query: ${this.getDocumentNodeVariable(
       documentVariableName
     )} });
-        
-        const apolloState = apolloClient.cache.extract();
 
         return {
-            props: {
-                ${this.config.apolloStateKey}: apolloState,
-                data: data?.data,
-                error: data?.error ?? data?.errors ?? null,
-            },
+            data: data?.data,
+            error: data?.error ?? data?.errors ?? null,
         };
       }`;
-
-    const ssr = `export const ssr${pageOperation} = {
-      getServerPage: getServerPage${pageOperation},
-      ${this.config.withHOC ? `withPage: withPage${pageOperation},` : ""}
-      ${this.config.withHooks ? `usePage: use${pageOperation},` : ""}
-    }`;
-    return [getSSP, pageHook, WrappedComp, pageQueryString, ssr]
-      .filter((a) => a)
-      .join("\n");
+    return [getSSP].filter((a) => a).join("\n");
   }
 
   protected buildOperation(

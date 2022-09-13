@@ -5,7 +5,10 @@ import { RawClientSideBasePluginConfig } from "@graphql-codegen/visitor-plugin-c
  *
  * It extends the basic TypeScript plugins: `@graphql-codegen/typescript`, `@graphql-codegen/typescript-operations` - and thus shares a similar configuration.
  */
-export type ApolloNextSSRRawPluginConfig = Omit<RawClientSideBasePluginConfig, 'importDocumentNodeExternallyFrom'> &
+export type ApolloNextSSRRawPluginConfig = Omit<
+  RawClientSideBasePluginConfig,
+  "importDocumentNodeExternallyFrom"
+> &
   Config;
 
 export type Config = {
@@ -34,41 +37,6 @@ export type Config = {
   apolloCacheImportFrom?: string;
 
   /**
-   * @description Customized the output by enabling/disabling the HOC.
-   * @default true
-   *
-   * @exampleMarkdown
-   * ```yml
-   * generates:
-   * path/to/file.ts:
-   *  plugins:
-   *    - typescript
-   *    - typescript-operations
-   *    - typescript-react-apollo
-   *  config:
-   *    withHOC: false
-   * ```
-   */
-  withHOC?: boolean;
-  /**
-   * @description Customized the output by enabling/disabling the generated React Hooks.
-   * @default false
-   *
-   * @exampleMarkdown
-   * ```yml
-   * generates:
-   * path/to/file.ts:
-   *  plugins:
-   *    - typescript
-   *    - typescript-operations
-   *    - typescript-react-apollo
-   *  config:
-   *    withHooks: false
-   * ```
-   */
-  withHooks?: boolean;
-
-  /**
    * @description Sets the version of react-apollo.
    * @default 2
    *
@@ -88,6 +56,7 @@ export type Config = {
   /**
    * @description Regexp to exclude a certain operation name
    */
+  // @ts-ignore
   excludePatterns?: string;
   /**
    * @description Regexp options to exclude a certain operation name
@@ -115,12 +84,13 @@ export type Config = {
   /**
    * @description Add custom imports needed by pre/post
    */
+  // @ts-ignore
   customImports?: string;
 
   /**
    * @description Add custom typing to context paramter
    */
-  contextType?: string
+  contextType?: string;
 
   /**
    * @description Whether the caller is required to pass a context
@@ -162,7 +132,7 @@ export type Config = {
    *   documentMode: external
    *   importDocumentNodeExternallyFrom: near-operation-file
    * ```
-   * 
+   *
    * ```yml
    * config:
    *   documentMode: external
