@@ -174,7 +174,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
           ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
               this.config.contextType
             }`
-          : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"
+          : "apolloClient: Apollo.ApolloClient<NormalizedCacheObject>"
       } ){
         ${
           this.config.apolloClientInstanceImport
@@ -214,7 +214,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
           ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
               this.config.contextType
             }`
-          : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"
+          : "apolloClient: Apollo.ApolloClient<NormalizedCacheObject>"
       } ){
         ${
           this.config.apolloClientInstanceImport
@@ -245,7 +245,7 @@ export const setGraphQLContext = (newContext: { client: Apollo.ApolloClient<Norm
         ? `ctx${this.config.contextTypeRequired ? "" : "?"}: ${
             this.config.contextType
           }`
-        : "apolloClient?: Apollo.ApolloClient<NormalizedCacheObject>"
+        : "apolloClient: Apollo.ApolloClient<NormalizedCacheObject>"
     } ){
         ${
           this.config.apolloClientInstanceImport
