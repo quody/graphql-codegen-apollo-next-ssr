@@ -54,8 +54,9 @@
     "build": "tsc",
     "codegen": "graphql-codegen --config codegen.yml",
     "prepublish": "tsc",
+    "git": "yarn build && git add -A && git commit -m 'update' && git push",
     "release": "standard-version",
     "test": "jest"
   },
-  "version": "1.7.2"
+  "version": "1.7.3"
 }
